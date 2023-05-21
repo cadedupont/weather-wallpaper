@@ -2,8 +2,8 @@
 
 import requests
 import os
-from appscript import app, mactypes
 from datetime import datetime
+from appscript import app, mactypes
 from unsplash.api import Api
 from unsplash.auth import Auth
 
@@ -37,29 +37,31 @@ def get_search_query(weather):
     time = 'day' if weather['dt'] > weather['sys']['sunrise'] and weather['dt'] < weather['sys']['sunset'] else 'night'
 
     # Return search query
-    return description + ' and ' + temp_desc + ' outside during the ' + time
+    return description + ' and ' + temp_desc + ' weather outside during the ' + time + ' landscape'
+
+# Return image URL from Unsplash API
+def get_image_url(weather):
+    return unsplash_api.photo.random(query=get_search_query(weather), orientation='landscape')[0].urls.raw
 
 # Get current weather
 def get_weather():
     return requests.get(weather_url).json()
 
-# Get image url from Unsplash API and download to file, set wallpaper
-def set_wallpaper(weather):
-    image_url = unsplash_api.photo.random(query=get_search_query(weather))[0].urls.raw
-    open('image.jpg', 'wb').write(requests.get(image_url).content)
-    app('Finder').desktop_picture.set(mactypes.File('./image.jpg'))
+# Download image from Unsplash API and set as wallpaper
+def set_wallpaper(url):
+    open('image.jpg', 'wb').write(requests.get(url).content)
+    app('Finder').desktop_picture.set(mactypes.File(os.getcwd() + '/image.jpg'))
 
 def main():
     # Get current weather and set wallpaper
     curr_weather = get_weather()
-    set_wallpaper(curr_weather)
+    set_wallpaper(get_image_url(curr_weather))
 
-    # Continuously check for new weather, if new weather is different, print time of change and set new wallpaper
+    # Continue checking for new weather, if new weather is different, set new wallpaper
     while True:
         new_weather = get_weather()
         if get_search_query(new_weather) != get_search_query(curr_weather):
-            print('New weather detected on ' + str(datetime.now().date()) + ' at ' + str(datetime.now().time()))
-            set_wallpaper(new_weather)
+            set_wallpaper(get_image_url(new_weather))
             curr_weather = new_weather
 
 # If this file is run directly, call main function
