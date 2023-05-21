@@ -1,4 +1,4 @@
-# weather-photo-frame
+# weather-wallpaper
 Python script for gathering weather data from OpenWeatherMap API, using as a search query to download an image from Unsplash to set as desktop wallpaper.<br>
 
 Currently has limited functionality. Requires installing various dependencies, adding private API keys to the system's environment variables, and is only configured to change the desktop wallpaper of MacOS devices.<br>
