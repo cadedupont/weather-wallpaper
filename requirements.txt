@@ -1,0 +1,3 @@
+requests==2.20.0
+appscript==1.2.2
+python-unsplash==1.1.0

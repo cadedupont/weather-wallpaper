@@ -1,8 +1,13 @@
-#! /opt/homebrew/bin/python3
+"""
+Author: Cade DuPont
+Date: 05/23/23
+Description: This script gathers weather data from Fayetteville, AR and sets
+            the desktop wallpaper to a random image from Unsplash based on
+            a generated search query.
+"""
 
 import requests
 import os
-from datetime import datetime
 from appscript import app, mactypes
 from unsplash.api import Api
 from unsplash.auth import Auth
@@ -37,7 +42,7 @@ def get_search_query(weather):
     time = 'day' if weather['dt'] > weather['sys']['sunrise'] and weather['dt'] < weather['sys']['sunset'] else 'night'
 
     # Return search query
-    return description + ' and ' + temp_desc + ' weather outside during the ' + time + ' landscape'
+    return description + ' landscape with ' + temp_desc + ' weather during the ' + time + ' time'
 
 # Return image URL from Unsplash API
 def get_image_url(weather):
@@ -49,20 +54,19 @@ def get_weather():
 
 # Download image from Unsplash API and set as wallpaper
 def set_wallpaper(url):
+    # Write contents of URL to image.jpg
     open('image.jpg', 'wb').write(requests.get(url).content)
-    app('Finder').desktop_picture.set(mactypes.File(os.getcwd() + '/image.jpg'))
+
+    # Set wallpaper according to OS
+    if os.name == 'nt':
+        import ctypes
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, os.getcwd() + '/image.jpg', 0)
+    elif os.name == 'posix':
+        app('Finder').desktop_picture.set(mactypes.File(os.getcwd() + '/image.jpg'))
 
 def main():
     # Get current weather and set wallpaper
-    curr_weather = get_weather()
-    set_wallpaper(get_image_url(curr_weather))
-
-    # Continue checking for new weather, if new weather is different, set new wallpaper
-    while True:
-        new_weather = get_weather()
-        if get_search_query(new_weather) != get_search_query(curr_weather):
-            set_wallpaper(get_image_url(new_weather))
-            curr_weather = new_weather
+    set_wallpaper(get_image_url(get_weather()))
 
 # If this file is run directly, call main function
 if __name__ == '__main__':
