@@ -46,17 +46,17 @@ This script can be run just once to generate a single desktop background of the 
 
 You can add a loop to the `main` function in the script to update the desktop background when a change in search query is detected:<br>
 
-```
+```py
 def main():
     # Get current weather and set wallpaper
     curr_weather = get_weather()
-    set_wallpaper(get_image_url(curr_weather))
+    set_wallpaper(curr_weather)
 
     # Continue checking for new weather, if new weather is different, set new wallpaper
     while True:
         new_weather = get_weather()
         if get_search_query(new_weather) != get_search_query(curr_weather):
-            set_wallpaper(get_image_url(new_weather))
+            set_wallpaper(new_weather)
             curr_weather = new_weather
 ```
 

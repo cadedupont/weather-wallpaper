@@ -6,11 +6,14 @@ Description: This script gathers weather data from Fayetteville, AR and sets
             a generated search query.
 """
 
-import requests
-import os
-from appscript import app, mactypes
+# Import modules
+import requests, os
 from unsplash.api import Api
 from unsplash.auth import Auth
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Create instance of Unsplash API, get URL for current weather
 unsplash_api = Api(Auth(os.getenv('UNSPLASH_ACCESS_KEY'), os.getenv('UNSPLASH_SECRET_KEY'), os.getenv('UNSPLASH_REDIRECT_URI')))
@@ -44,17 +47,14 @@ def get_search_query(weather):
     # Return search query
     return description + ' landscape with ' + temp_desc + ' weather during the ' + time + ' time'
 
-# Return image URL from Unsplash API
-def get_image_url(weather):
-    return unsplash_api.photo.random(query=get_search_query(weather), orientation='landscape')[0].urls.raw
-
 # Get current weather
 def get_weather():
     return requests.get(weather_url).json()
 
 # Download image from Unsplash API and set as wallpaper
-def set_wallpaper(url):
+def set_wallpaper(weather):
     # Write contents of URL to image.jpg
+    url = unsplash_api.photo.random(query=get_search_query(weather), orientation='landscape')[0].urls.raw
     open('image.jpg', 'wb').write(requests.get(url).content)
 
     # Set wallpaper according to OS
@@ -62,11 +62,12 @@ def set_wallpaper(url):
         import ctypes
         ctypes.windll.user32.SystemParametersInfoW(20, 0, os.getcwd() + '/image.jpg', 0)
     elif os.name == 'posix':
+        from appscript import app, mactypes
         app('Finder').desktop_picture.set(mactypes.File(os.getcwd() + '/image.jpg'))
 
 def main():
     # Get current weather and set wallpaper
-    set_wallpaper(get_image_url(get_weather()))
+    set_wallpaper(get_weather())
 
 # If this file is run directly, call main function
 if __name__ == '__main__':
