@@ -4,21 +4,36 @@ Python script for gathering current weather data from OpenWeatherMap API into a 
 
 Currently only configured to change the desktop wallpaper for MacOS and Windows devices, and is hard-coded to gather weather data from Fayetteville, AR.<br>
 
-## To Run:<br>
+## Setting up API keys<br>
+To run the Python script, you will need to have API keys for both [OpenWeatherMap](https://openweathermap.org/) as well as [Unsplash](https://unsplash.com/developers). These should be present in a `.env` file in the `src` directory of the project, with the following format:<br>
 
-### Installing Dependencies:<br>
+```
+# OpenWeatherMap key
+WEATHER_KEY=your_key_here
 
-Before running the script, use `pip` to install the script's required dependencies:<br>
+# Unsplash access key
+UNSPLASH_ACCESS_KEY=your_key_here
+
+# Unsplash secret key
+UNSPLASH_SECRET_KEY=your_key_here
+
+# Unsplash redirect uri
+UNSPLASH_REDIRECT_URI=your_key_here
+```
+
+## To run<br>
+
+### Installing dependencies<br>
+
+Before running the script, use `pip` to install the script's required dependencies found in the `requirements.txt` file:<br>
 
 `pip install -r requirements.txt`<br>
 
-This script requires obtaining API keys from [OpenWeatherMap](https://openweathermap.org) and [Unsplash](https://unsplash.com/developers). Once you've received your keys, replace every instance of `your_key_here` in the `.env` file with your corresponding API keys.<br>
-
 ---
 
-### Setting CronJob:<br>
+### Using `cron`<br>
 
-You can run this script using CronJobs to update your desktop background periodically. Run the following command to edit your current `cron` tasks:<br>
+You can run this script using `cron` to update your desktop background periodically. Run the following command to edit your current `cron` tasks:<br>
 
 `crontab -e`<br>
 
@@ -36,7 +51,7 @@ Run the following command to make the script executable by the user:
 
 ---
 
-### Other Run Options:<br>
+### Other run options<br>
 
 This script can be run just once to generate a single desktop background of the weather in Fayetteville, AR at that moment:<br>
 
