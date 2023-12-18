@@ -1,76 +1,72 @@
 """
 Author: Cade DuPont
 Date: 05/23/23
-Description: This script gathers weather data from Fayetteville, AR and sets
-            the desktop wallpaper to a random image from Unsplash based on
-            a generated search query.
+Description: Gather weather data from Fayetteville, AR and set
+            the desktop wallpaper to a random image from Unsplash
+            based on a generated search query.
 """
 
-# Import modules
-import requests, os
+import requests, os, platform, datetime, dotenv
 from unsplash.api import Api
 from unsplash.auth import Auth
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Import OS specific modules for changing desktop wallpaper
+if platform.system() == 'Windows':
+    import ctypes
+elif platform.system() == 'Darwin':
+    from appscript import app, mactypes
 
-# Create instance of Unsplash API, get URL for current weather
-unsplash_api = Api(Auth(os.getenv('UNSPLASH_ACCESS_KEY'), os.getenv('UNSPLASH_SECRET_KEY'), os.getenv('UNSPLASH_REDIRECT_URI')))
-weather_url = f'http://api.openweathermap.org/data/2.5/weather?id=4110486&appid={os.getenv("WEATHER_KEY")}'
+def get_search_query(weather: dict) -> str:
+    # Get weather description and temperature converted from Kelvin to Fahrenheit
+    description: str = weather['weather'][0]['description']
 
-# Convert Kelvin to Fahrenheit
-def kelvin_to_fahrenheit(kelvin):
-    return (kelvin - 273.15) * 9/5 + 32
-
-# Get search query for Unsplash API
-def get_search_query(weather):
-    # Get weather description and temperature as an integer
-    description = weather['weather'][0]['description']
-    temp = int(round(kelvin_to_fahrenheit(weather['main']['temp']), 0))
-
-    # Based on temperature, get temperature description
-    if temp < 32:
-        temp_desc = 'freezing'
-    elif temp < 50:
-        temp_desc = 'cold'
-    elif temp < 70:
-        temp_desc = 'cool'
-    elif temp < 80:
-        temp_desc = 'warm'
+    month: str = datetime.datetime.fromtimestamp(weather['dt']).strftime('%B')
+    if month in ['December', 'January', 'February']:
+        season: str = 'winter'
+    elif month in ['March', 'April', 'May']:
+        season: str = 'spring'
+    elif month in ['June', 'July', 'August']:
+        season: str = 'summer'
     else:
-        temp_desc = 'hot'
+        season: str = 'fall'
 
-    # Get time of day description based on whether current time is between sunrise and sunset
-    time = 'day' if weather['dt'] > weather['sys']['sunrise'] and weather['dt'] < weather['sys']['sunset'] else 'night'
+    # Get time of day based on whether current time is between sunrise and sunset, set season based on month weather data was gathered
+    time: str = 'day' if weather['dt'] > weather['sys']['sunrise'] and weather['dt'] < weather['sys']['sunset'] else 'night'
+    
+    # Return search query based on given description, temperature, and time of day
+    return f'{description} landscape during a {season} {time} desktop wallpaper'
 
-    # Return search query
-    return description + ' landscape with ' + temp_desc + ' weather during the ' + time + ' time'
+def set_wallpaper(query: str, unsplash: Api) -> None:
+    # Set file path and get URL for image based on search query
+    filepath: str = os.path.abspath(f'img/{str(datetime.date.today())}.jpg')
+    url: str = unsplash.photo.random(query=query, orientation='landscape')[0].urls.raw
 
-# Get current weather
-def get_weather():
-    return requests.get(weather_url).json()
+    # Write contents of URL to file with the name of the current date
+    open(filepath, 'wb').write(requests.get(url).content)
 
-# Download image from Unsplash API and set as wallpaper
-def set_wallpaper(weather):
-    # Write contents of URL to wallpaper.jpg in img folder
-    url = unsplash_api.photo.random(query=get_search_query(weather), orientation='landscape')[0].urls.raw
-    open('../img/wallpaper.jpg', 'wb').write(requests.get(url).content)
+    # Set desktop wallpaper based on OS
+    if platform.system() == 'Windows':
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, filepath, 0)
+    elif platform.system() == 'Darwin':
+        app('Finder').desktop_picture.set(mactypes.File(filepath))
 
-    # Set wallpaper according to OS
-    if os.name == 'nt':
-        import ctypes
-        os.chdir('..')
-        ctypes.windll.user32.SystemParametersInfoW(20, 0, os.getcwd() + '/img/wallpaper.jpg', 0)
-    elif os.name == 'posix':
-        from appscript import app, mactypes
-        os.chdir('..')
-        app('Finder').desktop_picture.set(mactypes.File(os.getcwd() + '/img/wallpaper.jpg'))
+def main() -> None:
+    # Load environment variables
+    dotenv.load_dotenv()
 
-def main():
-    # Get current weather and set wallpaper
-    set_wallpaper(get_weather())
+    # Create Unsplash API instance
+    unsplash_auth: Auth = Auth(os.getenv('UNSPLASH_ACCESS_KEY'),
+                               os.getenv('UNSPLASH_SECRET_KEY'),
+                               os.getenv('UNSPLASH_REDIRECT_URI'))
+    unsplash_api: Api = Api(unsplash_auth)
 
-# If this file is run directly, call main function
+    # Create URL for current weather data
+    weather_url: str = f'http://api.openweathermap.org/data/2.5/weather?id=4110486&appid={os.getenv("WEATHER_KEY")}'
+
+    # Get search query based on current weather data and set desktop wallpaper
+    query: str = get_search_query(requests.get(weather_url).json())
+    print(query)
+    set_wallpaper(query, unsplash_api)
+
 if __name__ == '__main__':
     main()

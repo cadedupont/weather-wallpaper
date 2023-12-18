@@ -1,4 +1,12 @@
-requests==2.31.0
-appscript==1.2.2
-python-unsplash==1.1.0
+appscript==1.1.0; platform_system == "Darwin"
+certifi==2023.11.17
+chardet==3.0.4
+ctypes==1.0.2; platform_system == "Windows"
+idna==2.7
+oauthlib==2.0.1
 python-dotenv==1.0.0
+python-unsplash==1.1.0
+requests==2.20.0
+requests-oauthlib==0.7.0
+six==1.10.0
+urllib3==1.24.3
