@@ -38,7 +38,7 @@ def get_search_query(weather: dict) -> str:
 
 def set_wallpaper(query: str, unsplash: Api) -> None:
     # Set file path and get URL for image based on search query
-    filepath: str = os.path.abspath(f'img/{str(datetime.date.today())}.jpg')
+    filepath: str = os.path.abspath(f'{str(datetime.date.today())}.jpg')
     url: str = unsplash.photo.random(query=query, orientation='landscape')[0].urls.raw
 
     # Write contents of URL to file with the name of the current date
@@ -65,7 +65,6 @@ def main() -> None:
 
     # Get search query based on current weather data and set desktop wallpaper
     query: str = get_search_query(requests.get(weather_url).json())
-    print(query)
     set_wallpaper(query, unsplash_api)
 
 if __name__ == '__main__':
